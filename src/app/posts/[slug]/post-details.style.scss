@@ -1,0 +1,51 @@
+// add varaible for default height
+$headerImageHeight: 500px;
+
+.post-details-header {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    height: $headerImageHeight;
+    margin: 0px;
+    background-color: black;
+
+    .post-details-header-title {
+        position: absolute;
+        text-align: center;
+        left: 0;
+        right: 0;
+        top: $headerImageHeight - 280px;
+        z-index: 1;
+
+        .post-details-header-title-box {
+            width: 800px;
+            margin: 0px auto;
+        }
+
+        h1,
+        h3 {
+            color: white !important;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+    }
+
+    img {
+        opacity: 0.3;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.post-details-content {
+    position: relative;
+    top: $headerImageHeight - 50px;
+    margin: 0px;
+}
