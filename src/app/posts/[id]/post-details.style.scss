@@ -47,5 +47,8 @@ $headerImageHeight: 500px;
 .post-details-content {
     position: relative;
     top: $headerImageHeight - 50px;
-    margin: 0px;
+    margin: 0px 100px;
+    .post-details-content-markdown {
+        margin-top: 30px;
+    }
 }

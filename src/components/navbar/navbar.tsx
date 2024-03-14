@@ -4,7 +4,6 @@ import * as React from "react"
 import Link from "next/link"
 
 import { cn } from "@/lib/utils"
-import Brand from "@/components/common/brand";
 import ModeToggle from "@/components/common/mode-toggle";
 import {
     NavigationMenu,
@@ -15,6 +14,8 @@ import {
     NavigationMenuTrigger,
     navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
+import { Button } from "@/components/ui/button";
+import { RoleBasedContent } from "../role-based-content";
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -120,6 +121,14 @@ function Navbar() {
                 </NavigationMenu>
             </div>
             <div>
+                <RoleBasedContent allowedRoles={["authorized"]}>
+                    <Button>Logout</Button>
+                </RoleBasedContent>
+                <RoleBasedContent allowedRoles={["unauthorized"]}>
+                    <Link href="/login" passHref>
+                        <Button>Login</Button>
+                    </Link>
+                </RoleBasedContent>
                 <ModeToggle></ModeToggle>
             </div>
         </nav>

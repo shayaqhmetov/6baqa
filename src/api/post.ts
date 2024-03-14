@@ -1,6 +1,9 @@
 import { fetcher } from "@/lib/utils";
 
 export const getPosts = async () => {
-  const { data } = await fetcher("/posts");
-  return data;
+  return await fetcher("/posts");
 };
+
+export const getPostDetails = async (id: string) => {
+  return await fetcher(`/posts/${id}`);
+}
