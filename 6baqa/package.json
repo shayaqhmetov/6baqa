@@ -1,0 +1,20 @@
+{
+  "name": "6baqa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "6baqa — independent game studio portfolio (Vite frontend + NestJS API)",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run start:dev --workspace api",
+    "dev:web": "npm run dev --workspace web",
+    "build": "npm run build --workspace api && npm run build --workspace web",
+    "start": "npm run start:prod --workspace api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

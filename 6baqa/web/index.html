@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6baqa — Independent game studio</title>
+<meta name="description" content="6baqa — independent game studio. Selected work, 2021–2025.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body id="top">
+
+  <header class="site-header">
+    <a href="#top" class="wordmark">6baqa</a>
+    <div class="header-right">
+      <nav class="site-nav mono">
+        <a href="#work" aria-current="page" data-i18n="nav.work">Work</a>
+        <a href="#info" data-i18n="nav.info">Info</a>
+        <a href="#contact" data-i18n="nav.contact">Contact</a>
+      </nav>
+      <div id="lang-switch"></div>
+    </div>
+  </header>
+
+  <section class="meta-row mono" id="info">
+    <p data-i18n="meta.studio">Independent game studio — est. 2021</p>
+    <p id="work-count">Selected work — 06</p>
+  </section>
+
+  <section class="work" id="work">
+    <div class="work-grid" id="work-grid" aria-busy="true">
+      <!-- Cards are rendered from the NestJS API by src/main.ts -->
+    </div>
+  </section>
+
+  <footer class="site-footer" id="contact">
+    <div class="footer-top">
+      <div>
+        <p class="footer-label" data-i18n="footer.hello">Say hello</p>
+        <a class="footer-email" href="mailto:hi@6baqa.games">hi@6baqa.games</a>
+      </div>
+      <nav class="footer-social mono">
+        <a href="#">Steam</a>
+        <a href="#">Itch.io</a>
+        <a href="#">Bluesky</a>
+      </nav>
+    </div>
+    <p class="footer-legal" data-i18n="footer.legal">© 2026 6baqa — All rights reserved</p>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
