@@ -1,0 +1,24 @@
+server {
+    listen ${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Forward API calls to the NestJS service. API_URL must be the API origin
+    # WITHOUT a path (e.g. https://6baqa-api.up.railway.app) — the /api prefix
+    # is already part of the request and is preserved by proxy_pass.
+    location /api/ {
+        proxy_pass ${API_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Static site (index.html + work.html). No SPA rewrite needed.
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
