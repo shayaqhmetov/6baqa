@@ -26,6 +26,23 @@ export interface WorkReel {
   wideLabel: string;
 }
 
+/** A single functionality highlight inside a module. */
+export interface WorkModuleFeature {
+  title: string;
+  body: string;
+  /** Optional illustrative image (asset URL). Shared across locales. */
+  image?: string;
+  imageLabel?: string;
+}
+
+/** A product module (Finance, Nutrition, …) shown on the detail page. */
+export interface WorkModule {
+  name: string;
+  tagline: string;
+  /** Optional deeper functionality sections. */
+  features?: WorkModuleFeature[];
+}
+
 export interface WorkNext {
   slug: string;
   title: string;
@@ -57,6 +74,8 @@ export interface Work {
   socials: WorkLink[];
   /** The scrollable detail reel. */
   reel: WorkReel;
+  /** Product modules (multi-module apps only). */
+  modules?: WorkModule[];
   /** The "next project" link target. */
   next: WorkNext;
 }

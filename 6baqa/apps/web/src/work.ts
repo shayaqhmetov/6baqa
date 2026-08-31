@@ -38,6 +38,43 @@ function detailMarkup(work: Work): string {
     ? `<a class="wd-site" href="${esc(work.website.url)}">${esc(work.website.label)} →</a>`
     : '';
 
+  const modules = (work.modules ?? [])
+    .map((m) => {
+      const features = (m.features ?? [])
+        .map((f) => {
+          const figure = f.image
+            ? `<figure class="wd-feature-fig">
+                 <img src="${esc(f.image)}" alt="${esc(f.imageLabel ?? f.title)}" loading="lazy" decoding="async">
+                 ${f.imageLabel ? `<figcaption class="wd-caption mono">${esc(f.imageLabel)}</figcaption>` : ''}
+               </figure>`
+            : '';
+          return `
+            <div class="wd-feature">
+              <h4 class="wd-feature-title">${esc(f.title)}</h4>
+              <p class="wd-body">${esc(f.body)}</p>
+              ${figure}
+            </div>`;
+        })
+        .join('');
+      return `
+        <li class="wd-module">
+          <div class="wd-module-head">
+            <h3 class="wd-module-name">${esc(m.name)}</h3>
+            <p class="wd-module-tagline">${esc(m.tagline)}</p>
+          </div>
+          ${features ? `<div class="wd-features">${features}</div>` : ''}
+        </li>`;
+    })
+    .join('');
+
+  const modulesSection = modules
+    ? `
+      <section class="wd-block wd-modules">
+        <p class="wd-kicker mono">${t('detail.modules', lang)}</p>
+        <ul class="wd-module-list">${modules}</ul>
+      </section>`
+    : '';
+
   const r = work.reel;
 
   return `
@@ -96,6 +133,8 @@ function detailMarkup(work: Work): string {
         <figure><img src="${esc(r.proc1)}" alt="${esc(r.proc1Label)}" decoding="async"></figure>
         <figure><img src="${esc(r.proc2)}" alt="${esc(r.proc2Label)}" decoding="async"></figure>
       </div>
+
+      ${modulesSection}
 
       <section class="wd-block wd-quote-wrap">
         <p class="wd-quote">“${esc(r.quote)}”</p>

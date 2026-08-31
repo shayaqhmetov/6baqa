@@ -25,6 +25,19 @@ export interface WorkReel {
   wideLabel: string;
 }
 
+export interface WorkModuleFeature {
+  title: string;
+  body: string;
+  image?: string;
+  imageLabel?: string;
+}
+
+export interface WorkModule {
+  name: string;
+  tagline: string;
+  features?: WorkModuleFeature[];
+}
+
 export interface WorkNext {
   slug: string;
   title: string;
@@ -45,5 +58,6 @@ export interface Work {
   website?: WorkLink;
   socials: WorkLink[];
   reel: WorkReel;
+  modules?: WorkModule[];
   next: WorkNext;
 }

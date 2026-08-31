@@ -30,7 +30,7 @@ const CATALOGUE: ReadonlyArray<WorkSeed> = [
       { label: 'Team', value: 'Solo' },
       { label: 'Status', value: 'In development' },
     ],
-    website: { label: 'brainmap.io', url: '#' },
+    website: { label: '99node.6baqa.com', url: 'https://99node.6baqa.com' },
     socials: [
       { label: 'GitHub', url: '#' },
       { label: 'Changelog', url: '#' },
@@ -65,7 +65,7 @@ const CATALOGUE: ReadonlyArray<WorkSeed> = [
       { label: 'Team', value: 'Solo' },
       { label: 'Released', value: '2025' },
     ],
-    website: { label: 'qurbaqa.app', url: '#' },
+    website: { label: 'qurbaqa.6baqa.com', url: 'https://qurbaqa.6baqa.com' },
     socials: [
       { label: 'App Store', url: '#' },
       { label: 'Google Play', url: '#' },
@@ -81,208 +81,46 @@ const CATALOGUE: ReadonlyArray<WorkSeed> = [
       quote: 'The frog is the point — a tracker you don’t dread opening.',
       wideLabel: 'Spending and nutrition, one timeline',
     },
-  },
-  {
-    slug: 'lumen-drift',
-    title: 'Lumen Drift',
-    category: 'Atmospheric Platformer',
-    year: '2025',
-    description:
-      'A hand-lit platformer about carrying the last light through a world that forgot the sun.',
-    tagline:
-      'A hand-painted platformer about carrying the last light through a world that forgot the sun.',
-    tags: ['Godot 4', 'Custom lighting', 'Original score'],
-    facts: [
-      { label: 'Studio', value: '6baqa' },
-      { label: 'Role', value: 'Design\nProgramming\nOriginal Score' },
-      { label: 'Platforms', value: 'PC · Mac · Switch' },
-      { label: 'Engine', value: 'Godot 4' },
-      { label: 'Team', value: '3 people' },
-      { label: 'Released', value: 'March 2025' },
+    modules: [
+      {
+        name: 'Finance',
+        tagline:
+          'Transactions, budgets, subscriptions and monthly analytics — everything money in one ledger.',
+        features: [
+          {
+            title: 'Smart categorizer',
+            body: 'On import, Qurbaqa groups raw bank operations by merchant and suggests a category for the whole group — press 1–9 to assign, Enter to accept the hint. It learns as you go: once you categorise a merchant, every future operation from it is pre-filled, so a statement of hundreds of rows collapses into a handful of decisions.',
+            image: '/assets/qurbaqa-finance-categorizer.png',
+            imageLabel: 'Import — the categorizer suggesting a category',
+          },
+        ],
+      },
+      {
+        name: 'Nutrition',
+        tagline:
+          'Log meals against a daily calorie target, follow a meal plan, and keep the streak alive.',
+      },
+      {
+        name: 'Goals',
+        tagline:
+          'Set savings goals, top them up from any balance, and watch progress track on schedule.',
+      },
+      {
+        name: 'Health',
+        tagline:
+          'Sync steps, sleep and workouts from the phone so activity quests close themselves.',
+      },
+      {
+        name: 'Gamification',
+        tagline:
+          'Daily quests award XP, streaks stock the pond, and a pixel frog turns the routine into a game.',
+      },
+      {
+        name: 'Pilar',
+        tagline:
+          'An in-app AI companion that reads the day and answers questions about your money, meals and goals.',
+      },
     ],
-    website: { label: 'lumendrift.game', url: '#' },
-    socials: [
-      { label: 'Steam', url: '#' },
-      { label: 'Itch.io', url: '#' },
-      { label: 'Press kit', url: '#' },
-    ],
-    reel: {
-      heroLabel: 'Hero key art',
-      idea: 'We wanted a game you could finish in a weekend but feel for a year. Lumen Drift started as a jam prototype — one button, one light, a long dark tunnel — and grew into a full studio project without losing that first quiet idea.',
-      videoCaption: 'Announce trailer — 1:42',
-      process:
-        'Players don’t remember mechanics — they remember moments. Every system bends toward a single feeling: the relief of light returning to a room. Movement, sound, and colour all serve that beat; everything else got cut.',
-      proc1Label: 'Early sketch',
-      proc2Label: 'Final in-game',
-      quote:
-        'The whole world reacts to your lantern — walk into a dark grove and it wakes.',
-      wideLabel: 'Wide screenshot',
-    },
-  },
-  {
-    slug: 'paper-kingdoms',
-    title: 'Paper Kingdoms',
-    category: 'Turn-based Strategy',
-    year: '2024',
-    description: 'A pop-up-book war for tiny thrones.',
-    tagline: 'A pop-up-book war for tiny thrones, folded one province at a time.',
-    tags: ['Unity', 'Procedural maps', 'Cross-platform'],
-    facts: [
-      { label: 'Studio', value: '6baqa' },
-      { label: 'Role', value: 'Design\nProgramming' },
-      { label: 'Platforms', value: 'PC · Mobile' },
-      { label: 'Engine', value: 'Unity' },
-      { label: 'Team', value: '4 people' },
-      { label: 'Released', value: '2024' },
-    ],
-    website: { label: 'paperkingdoms.game', url: '#' },
-    socials: [
-      { label: 'Steam', url: '#' },
-      { label: 'Itch.io', url: '#' },
-    ],
-    reel: {
-      heroLabel: 'Hero key art',
-      idea: 'Grand strategy is intimidating. We asked what a 4X would feel like if the whole world were made of folded paper — light, tactile, and small enough to hold in your hands.',
-      videoCaption: 'Campaign overview · 2:05',
-      process:
-        'Every province is a paper cut-out that unfolds as you take it. The season system re-shuffles the board four times a year, so no two campaigns fold the same way.',
-      proc1Label: 'Paper prototype',
-      proc2Label: 'Final in-game',
-      quote: 'Fold the terrain, out-think the seasons, take the map.',
-      wideLabel: 'The unfolding map',
-    },
-  },
-  {
-    slug: 'nocturne',
-    title: 'Nocturne',
-    category: 'Narrative Horror',
-    year: '2024',
-    description: 'A single night in a house that remembers.',
-    tagline: 'A single night in a house that remembers everything you touch.',
-    tags: ['Narrative', 'Branching', 'Voice-acted'],
-    facts: [
-      { label: 'Studio', value: '6baqa' },
-      { label: 'Role', value: 'Design\nWriting' },
-      { label: 'Platforms', value: 'PC · Mac' },
-      { label: 'Engine', value: 'Godot 4' },
-      { label: 'Team', value: '3 people' },
-      { label: 'Released', value: '2024' },
-    ],
-    website: { label: 'nocturne.game', url: '#' },
-    socials: [
-      { label: 'Steam', url: '#' },
-      { label: 'Press kit', url: '#' },
-    ],
-    reel: {
-      heroLabel: 'Hero key art',
-      idea: 'Horror leans on jump scares; we wanted dread that accrues. One house, one night, and a memory that keeps score of every light you leave burning.',
-      videoCaption: 'Story teaser · 1:18',
-      process:
-        'The house tracks state room by room. Branches don’t just change dialogue — they change what is waiting for you when you come back through a door you already opened.',
-      proc1Label: 'Mood board',
-      proc2Label: 'Final in-game',
-      quote: 'Every light you leave on costs you something.',
-      wideLabel: 'The upstairs hall',
-    },
-  },
-  {
-    slug: 'tidewalker',
-    title: 'Tidewalker',
-    category: 'Exploration / Adventure',
-    year: '2023',
-    description: 'Chart a drowned archipelago that reshapes itself with the tide.',
-    tagline: 'Chart a drowned archipelago that reshapes itself with the tide.',
-    tags: ['Open world', 'Dynamic tides', 'Exploration'],
-    facts: [
-      { label: 'Studio', value: '6baqa' },
-      { label: 'Role', value: 'Design\nProgramming' },
-      { label: 'Platforms', value: 'PC · Console' },
-      { label: 'Engine', value: 'Unity' },
-      { label: 'Team', value: '5 people' },
-      { label: 'Released', value: '2023' },
-    ],
-    website: { label: 'tidewalker.game', url: '#' },
-    socials: [
-      { label: 'Steam', url: '#' },
-      { label: 'Itch.io', url: '#' },
-    ],
-    reel: {
-      heroLabel: 'Hero key art',
-      idea: 'We loved maps you have to earn. The tide became the whole game: routes open and close twice a day, and the best places only surface when the water pulls back.',
-      videoCaption: 'Exploration reel · 2:30',
-      process:
-        'A single global tide clock drives terrain, currents, and wildlife. Learning to read the water — not the minimap — is the real progression curve.',
-      proc1Label: 'Tide study',
-      proc2Label: 'Final in-game',
-      quote: 'Read the water to find what surfaces only twice a day.',
-      wideLabel: 'Low tide over the reef',
-    },
-  },
-  {
-    slug: 'signal-lost',
-    title: 'Signal Lost',
-    category: 'Sci-fi Puzzle',
-    year: '2022',
-    description: 'Reboot a derelict station one dead circuit at a time.',
-    tagline: 'Reboot a derelict station one dead circuit at a time.',
-    tags: ['Logic puzzles', 'Sci-fi', 'Atmospheric'],
-    facts: [
-      { label: 'Studio', value: '6baqa' },
-      { label: 'Role', value: 'Design\nProgramming' },
-      { label: 'Platforms', value: 'PC · Mobile' },
-      { label: 'Engine', value: 'Godot 3' },
-      { label: 'Team', value: '2 people' },
-      { label: 'Released', value: '2022' },
-    ],
-    website: { label: 'signallost.game', url: '#' },
-    socials: [
-      { label: 'Steam', url: '#' },
-      { label: 'Itch.io', url: '#' },
-    ],
-    reel: {
-      heroLabel: 'Hero key art',
-      idea: 'A puzzle game about listening. The station is dead; the puzzles are the act of bringing its systems back one signal at a time, deciding whose voice you want to hear again.',
-      videoCaption: 'Puzzle showcase · 1:55',
-      process:
-        'Each circuit is a self-contained logic puzzle, but rerouting power to one system starves another — so the whole station is a puzzle stacked on top of the small ones.',
-      proc1Label: 'Circuit sketch',
-      proc2Label: 'Final in-game',
-      quote: 'Reroute the power, decode the static, choose who wakes up.',
-      wideLabel: 'The reactor core',
-    },
-  },
-  {
-    slug: 'featherfall',
-    title: 'Featherfall',
-    category: 'Roguelike',
-    year: '2021',
-    description: 'Fall upward through a collapsing sky.',
-    tagline: 'A fast, feather-light roguelike about falling upward through a collapsing sky.',
-    tags: ['Roguelike', 'Permadeath', 'Pixel art'],
-    facts: [
-      { label: 'Studio', value: '6baqa' },
-      { label: 'Role', value: 'Design\nProgramming\nPixel art' },
-      { label: 'Platforms', value: 'PC' },
-      { label: 'Engine', value: 'Godot 3' },
-      { label: 'Team', value: 'Solo' },
-      { label: 'Released', value: '2021' },
-    ],
-    website: { label: 'featherfall.game', url: '#' },
-    socials: [
-      { label: 'Steam', url: '#' },
-      { label: 'Itch.io', url: '#' },
-    ],
-    reel: {
-      heroLabel: 'Hero key art',
-      idea: 'Our first shipped game, and the studio’s origin. A run-based climb where death is the loop — every fall rebuilds your wings from what the last run broke.',
-      videoCaption: 'Launch trailer · 1:12',
-      process:
-        'Tight, readable pixel art and a two-button moveset. The whole design brief was “a run should fit in a coffee break, and losing should feel like your idea.”',
-      proc1Label: 'First sprites',
-      proc2Label: 'Final in-game',
-      quote: 'Every run rebuilds your wings from what the last one broke.',
-      wideLabel: 'The upper spires',
-    },
   },
 ];
 
