@@ -112,7 +112,7 @@ Admin (require `Authorization: Bearer <token>` from `/api/auth/login`):
 | `JWT_SECRET`            | yes      | signs admin JWTs — long random string in prod  |
 | `ADMIN_PASSWORD_HASH`   | yes\*    | bcrypt hash of the admin password (preferred)  |
 | `ADMIN_PASSWORD`        | yes\*    | plaintext fallback if no hash is set           |
-| `AWS_*` / `S3_*`        | prod     | S3-compatible bucket for uploads (see below)   |
+| bucket vars             | prod     | S3-compatible bucket for uploads (see below)   |
 | `UPLOADS_DIR`           | no       | local-dev fallback when no bucket is set        |
 | `PORT`                  | no       | defaults to 3000 (Railway injects it)          |
 
@@ -121,15 +121,19 @@ Admin (require `Authorization: Bearer <token>` from `/api/auth/login`):
 ### Uploads → Railway Bucket
 
 Uploaded images go to an S3-compatible bucket. On **Railway**, add a **Bucket**
-service, then reference it from the API service — Railway injects
-`AWS_ENDPOINT_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
-`AWS_S3_BUCKET_NAME`, `AWS_DEFAULT_REGION`, and `AWS_S3_URL_STYLE`, which the API
-reads automatically. No volume needed. Any S3-compatible store works (MinIO, R2,
-AWS) via the equivalent `S3_*` variables.
+service. Its Credentials tab exposes `ENDPOINT`, `ACCESS_KEY_ID`,
+`SECRET_ACCESS_KEY`, `BUCKET`, and `REGION` — reference them on the API service
+with the **same names** (e.g. `ENDPOINT=${{Bucket.ENDPOINT}}`), and the API picks
+them up automatically. No volume needed. Any S3-compatible store works (MinIO,
+R2, AWS) via the generic `S3_*` variables, which take precedence.
 
-By default the API **proxies** downloads at `/api/uploads/<key>`, so images load
-even from a private bucket. If your bucket is public, set `S3_PUBLIC_URL` to its
-public base URL and image links point straight at the bucket.
+Railway Buckets use virtual-hosted addressing (the default here); set
+`S3_URL_STYLE=path` for MinIO or older path-style buckets.
+
+Railway Buckets are private, so by default the API **proxies** downloads at
+`/api/uploads/<key>` — images load without any public-access config. If you make
+the bucket public, set `S3_PUBLIC_URL` to its public base URL and image links
+point straight at the bucket.
 
 When no bucket is configured (e.g. local dev), uploads fall back to disk under
 `UPLOADS_DIR`.
