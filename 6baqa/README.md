@@ -121,19 +121,28 @@ Admin (require `Authorization: Bearer <token>` from `/api/auth/login`):
 ### Uploads → Railway Bucket
 
 Uploaded images go to an S3-compatible bucket. On **Railway**, add a **Bucket**
-service. Its Credentials tab exposes `ENDPOINT`, `ACCESS_KEY_ID`,
-`SECRET_ACCESS_KEY`, `BUCKET`, and `REGION` — reference them on the API service
-with the **same names** (e.g. `ENDPOINT=${{Bucket.ENDPOINT}}`), and the API picks
-them up automatically. No volume needed. Any S3-compatible store works (MinIO,
-R2, AWS) via the generic `S3_*` variables, which take precedence.
+service and reference its `AWS_*` credentials from the API service:
+
+```
+AWS_ENDPOINT_URL=${{Bucket.AWS_ENDPOINT_URL}}
+AWS_ACCESS_KEY_ID=${{Bucket.AWS_ACCESS_KEY_ID}}
+AWS_SECRET_ACCESS_KEY=${{Bucket.AWS_SECRET_ACCESS_KEY}}
+AWS_S3_BUCKET_NAME=${{Bucket.AWS_S3_BUCKET_NAME}}
+AWS_REGION=${{Bucket.AWS_REGION}}
+```
+
+The API reads these automatically (and also accepts several common aliases, so
+whatever the bucket injects is picked up). No volume needed. Any S3-compatible
+store works (MinIO, R2, AWS) via the generic `S3_*` variables, which take
+precedence.
 
 Railway Buckets use virtual-hosted addressing (the default here); set
-`S3_URL_STYLE=path` for MinIO or older path-style buckets.
+`AWS_S3_URL_STYLE=path` for MinIO or older path-style buckets.
 
 Railway Buckets are private, so by default the API **proxies** downloads at
 `/api/uploads/<key>` — images load without any public-access config. If you make
-the bucket public, set `S3_PUBLIC_URL` to its public base URL and image links
-point straight at the bucket.
+the bucket public, set `AWS_S3_URL` to its public base URL and image links point
+straight at the bucket.
 
 When no bucket is configured (e.g. local dev), uploads fall back to disk under
 `UPLOADS_DIR`.
