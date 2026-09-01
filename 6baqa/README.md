@@ -106,21 +106,37 @@ Admin (require `Authorization: Bearer <token>` from `/api/auth/login`):
 
 ## Environment variables (API)
 
-| Variable              | Required | Notes                                            |
-| --------------------- | -------- | ------------------------------------------------ |
-| `DATABASE_URL`        | yes      | Postgres connection string                       |
-| `JWT_SECRET`          | yes      | signs admin JWTs — long random string in prod    |
-| `ADMIN_PASSWORD_HASH` | yes\*    | bcrypt hash of the admin password (preferred)    |
-| `ADMIN_PASSWORD`      | yes\*    | plaintext fallback if no hash is set             |
-| `UPLOADS_DIR`         | no       | where uploads are written (use a volume in prod) |
-| `PORT`                | no       | defaults to 3000 (Railway injects it)            |
+| Variable                | Required | Notes                                          |
+| ----------------------- | -------- | ---------------------------------------------- |
+| `DATABASE_URL`          | yes      | Postgres connection string                     |
+| `JWT_SECRET`            | yes      | signs admin JWTs — long random string in prod  |
+| `ADMIN_PASSWORD_HASH`   | yes\*    | bcrypt hash of the admin password (preferred)  |
+| `ADMIN_PASSWORD`        | yes\*    | plaintext fallback if no hash is set           |
+| `AWS_*` / `S3_*`        | prod     | S3-compatible bucket for uploads (see below)   |
+| `UPLOADS_DIR`           | no       | local-dev fallback when no bucket is set        |
+| `PORT`                  | no       | defaults to 3000 (Railway injects it)          |
 
 \* set exactly one of `ADMIN_PASSWORD_HASH` / `ADMIN_PASSWORD`.
 
-On **Railway**, set these on the API service and mount a volume for `UPLOADS_DIR`
-so uploaded images survive redeploys. The API container runs `prisma db push`
-on start, so tables are created/synced automatically; run the seed once
-(`npm run db:seed`) against the production DB to load the initial works.
+### Uploads → Railway Bucket
+
+Uploaded images go to an S3-compatible bucket. On **Railway**, add a **Bucket**
+service, then reference it from the API service — Railway injects
+`AWS_ENDPOINT_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+`AWS_S3_BUCKET_NAME`, `AWS_DEFAULT_REGION`, and `AWS_S3_URL_STYLE`, which the API
+reads automatically. No volume needed. Any S3-compatible store works (MinIO, R2,
+AWS) via the equivalent `S3_*` variables.
+
+By default the API **proxies** downloads at `/api/uploads/<key>`, so images load
+even from a private bucket. If your bucket is public, set `S3_PUBLIC_URL` to its
+public base URL and image links point straight at the bucket.
+
+When no bucket is configured (e.g. local dev), uploads fall back to disk under
+`UPLOADS_DIR`.
+
+On **Railway**, the API container runs `prisma db push` on start, so tables are
+created/synced automatically; run the seed once (`npm run db:seed`) against the
+production `DATABASE_URL` to load the initial works.
 
 ## Build
 

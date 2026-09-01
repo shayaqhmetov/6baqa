@@ -2,9 +2,9 @@ import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { AppModule } from './app.module';
-import { ADMIN_UI_DIR, UPLOADS_DIR, UPLOADS_ROUTE } from './config';
+import { ADMIN_UI_DIR } from './config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -17,10 +17,8 @@ async function bootstrap() {
     new ValidationPipe({ whitelist: true, transform: true }),
   );
 
-  // Serve uploaded images (under /api/... so the web proxy reaches them) and
-  // the static admin UI (at /admin on the API origin).
-  if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true });
-  app.useStaticAssets(UPLOADS_DIR, { prefix: UPLOADS_ROUTE });
+  // Uploaded images are served by UploadsController (/api/uploads/:key) from
+  // the bucket or disk. Here we only serve the static admin UI (at /admin).
   if (existsSync(ADMIN_UI_DIR)) {
     app.useStaticAssets(ADMIN_UI_DIR, { prefix: '/admin' });
   }
