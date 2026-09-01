@@ -147,9 +147,16 @@ straight at the bucket.
 When no bucket is configured (e.g. local dev), uploads fall back to disk under
 `UPLOADS_DIR`.
 
-On **Railway**, the API container runs `prisma db push` on start, so tables are
-created/synced automatically; run the seed once (`npm run db:seed`) against the
-production `DATABASE_URL` to load the initial works.
+On **Railway**, the API container runs `prisma migrate deploy` on start, so
+pending migrations are applied automatically on every deploy (non-destructive —
+it only creates/updates what the migrations declare and never drops unrelated
+tables). After the first successful deploy, run the seed once
+(`npm run db:seed`) against the production `DATABASE_URL` to load the initial
+works.
+
+Local dev can use `npm run db:push` (fast schema sync, no migration files) or
+`npm run prisma:migrate -- --name <change>` to create a new migration when the
+schema changes.
 
 ## Build
 
