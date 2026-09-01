@@ -24,8 +24,9 @@ COPY apps/web/package.json apps/web/package.json
 RUN npm ci --omit=dev
 
 # Prisma schema + generated client are needed at runtime (db push + queries).
+# Runs with cwd = apps/api, so prisma auto-finds prisma/schema.prisma.
 COPY apps/api/prisma apps/api/prisma
-RUN npx --workspace @6baqa/api prisma generate --schema apps/api/prisma/schema.prisma
+RUN npm run prisma:generate --workspace @6baqa/api
 
 # Built server + static admin UI.
 COPY --from=build /app/apps/api/dist apps/api/dist
