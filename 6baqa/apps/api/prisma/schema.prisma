@@ -1,0 +1,46 @@
+// 6baqa portfolio — data model.
+// The rich, nested work shape (reel text, facts, socials, modules, RU overrides)
+// is stored as JSON columns so it maps 1:1 to the API's TypeScript interfaces
+// and the admin panel can edit it without a sprawl of side tables.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Work {
+  id    String @id @default(cuid())
+  slug  String @unique
+  /// Display order on the site (ascending).
+  order Int    @default(0)
+
+  // --- English (base) authored content ---
+  title       String
+  category    String
+  year        String
+  description String
+  tagline     String
+  tags        Json // string[]
+  facts       Json // WorkFact[]
+  website     Json? // WorkLink | null
+  socials     Json // WorkLink[]
+  reel        Json // authored reel text + optional image overrides
+  modules     Json? // WorkModule[] | null
+
+  // Optional explicit image URLs (fall back to /assets/<slug>*.png when null).
+  poster  String?
+  preview String?
+
+  // --- Russian overrides (WorkTranslation | null) ---
+  ru Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Single-row admin credential store is unnecessary — the admin password is an
+/// env secret (ADMIN_PASSWORD_HASH). This model is reserved for future users.

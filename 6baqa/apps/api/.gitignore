@@ -1,0 +1,9 @@
+# Secrets
+.env
+.env.local
+
+# Uploaded images (runtime data; use a mounted volume in prod)
+uploads/
+
+# Build output
+dist/

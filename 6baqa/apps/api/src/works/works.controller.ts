@@ -8,12 +8,15 @@ export class WorksController {
   constructor(private readonly worksService: WorksService) {}
 
   @Get()
-  findAll(@Query('lang') lang?: string): Work[] {
+  findAll(@Query('lang') lang?: string): Promise<Work[]> {
     return this.worksService.findAll(parseLang(lang));
   }
 
   @Get(':slug')
-  findOne(@Param('slug') slug: string, @Query('lang') lang?: string): Work {
+  findOne(
+    @Param('slug') slug: string,
+    @Query('lang') lang?: string,
+  ): Promise<Work> {
     return this.worksService.findOne(slug, parseLang(lang));
   }
 }

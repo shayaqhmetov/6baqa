@@ -30,8 +30,10 @@ export interface WorkTranslation {
   modules?: WorkModule[];
 }
 
-/** Russian overrides, keyed by slug. English lives in the catalogue itself. */
-const RU: Record<string, WorkTranslation> = {
+/** Russian overrides, keyed by slug — the seed source for the DB. At runtime
+ *  each work's translation comes from its own DB row (`ru` column), not this
+ *  map; this is only used to seed the initial catalogue. */
+export const RU: Record<string, WorkTranslation> = {
   '99node': {
     category: 'Конструктор роадмапов',
     description:
@@ -136,10 +138,12 @@ const RU: Record<string, WorkTranslation> = {
 
 /** Return a locale-specific copy of a work. Falls back to English (the
  *  work as authored) when the locale is English or a translation is missing. */
-export function localizeWork(work: Work, lang: Lang): Work {
-  if (lang === 'en') return work;
-  const tr = RU[work.slug];
-  if (!tr) return work;
+export function localizeWork(
+  work: Work,
+  tr: WorkTranslation | null | undefined,
+  lang: Lang,
+): Work {
+  if (lang === 'en' || !tr) return work;
   return {
     ...work,
     category: tr.category,

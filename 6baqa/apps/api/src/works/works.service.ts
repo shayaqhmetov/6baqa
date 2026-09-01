@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { AuthoredWork } from './authored.interface';
+import { toWork } from './work.build';
 import { Work, WorkReel } from './work.interface';
-import { Lang, localizeWork } from './works.i18n';
+import { Lang, localizeWork, WorkTranslation } from './works.i18n';
 
 /** Authored reel copy — image URLs are derived from the slug at build time. */
 type ReelSeed = Omit<WorkReel, 'hero' | 'video' | 'proc1' | 'proc2' | 'wide'>;
@@ -10,8 +13,9 @@ type WorkSeed = Omit<
   'index' | 'poster' | 'preview' | 'reel' | 'next'
 > & { reel: ReelSeed };
 
-/** Source catalogue — order here is the display order on the site. */
-const CATALOGUE: ReadonlyArray<WorkSeed> = [
+/** Initial catalogue — used only to seed the database on first run
+ *  (see prisma/seed.ts). At runtime works are read from Postgres. */
+export const CATALOGUE: ReadonlyArray<WorkSeed> = [
   {
     slug: '99node',
     title: '99node',
@@ -124,40 +128,78 @@ const CATALOGUE: ReadonlyArray<WorkSeed> = [
   },
 ];
 
-function buildReel(slug: string, seed: ReelSeed): WorkReel {
+/** A DB row as stored — the authored content plus row metadata. Prisma types
+ *  the JSON columns as `unknown`, so we assert the authored shape here. */
+type WorkRow = {
+  slug: string;
+  order: number;
+  title: string;
+  category: string;
+  year: string;
+  description: string;
+  tagline: string;
+  tags: unknown;
+  facts: unknown;
+  website: unknown;
+  socials: unknown;
+  reel: unknown;
+  modules: unknown;
+  poster: string | null;
+  preview: string | null;
+  ru: unknown;
+};
+
+/** Cast a persisted row into the authored shape the builder expects. */
+function rowToAuthored(row: WorkRow): AuthoredWork {
   return {
-    ...seed,
-    hero: `/assets/${slug}-hero.png`,
-    video: `/assets/${slug}-video.png`,
-    proc1: `/assets/${slug}-proc1.png`,
-    proc2: `/assets/${slug}-proc2.png`,
-    wide: `/assets/${slug}-wide.png`,
+    slug: row.slug,
+    title: row.title,
+    category: row.category,
+    year: row.year,
+    description: row.description,
+    tagline: row.tagline,
+    tags: (row.tags ?? []) as AuthoredWork['tags'],
+    facts: (row.facts ?? []) as AuthoredWork['facts'],
+    website: (row.website ?? null) as AuthoredWork['website'],
+    socials: (row.socials ?? []) as AuthoredWork['socials'],
+    reel: row.reel as AuthoredWork['reel'],
+    modules: (row.modules ?? null) as AuthoredWork['modules'],
+    poster: row.poster,
+    preview: row.preview,
+    ru: (row.ru ?? null) as AuthoredWork['ru'],
   };
 }
 
 @Injectable()
 export class WorksService {
-  private readonly works: Work[] = CATALOGUE.map((w, i) => {
-    const next = CATALOGUE[(i + 1) % CATALOGUE.length];
-    return {
-      ...w,
-      index: String(i + 1).padStart(2, '0'),
-      poster: `/assets/${w.slug}.png`,
-      preview: `/assets/${w.slug}-hover.png`,
-      reel: buildReel(w.slug, w.reel),
-      next: { slug: next.slug, title: next.title },
-    };
-  });
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(lang: Lang = 'en'): Work[] {
-    return this.works.map((w) => localizeWork(w, lang));
+  async findAll(lang: Lang = 'en'): Promise<Work[]> {
+    const rows = (await this.prisma.work.findMany({
+      orderBy: { order: 'asc' },
+    })) as WorkRow[];
+    return rows.map((row, i) => this.build(rows, row, i, lang));
   }
 
-  findOne(slug: string, lang: Lang = 'en'): Work {
-    const work = this.works.find((w) => w.slug === slug);
-    if (!work) {
+  async findOne(slug: string, lang: Lang = 'en'): Promise<Work> {
+    const rows = (await this.prisma.work.findMany({
+      orderBy: { order: 'asc' },
+    })) as WorkRow[];
+    const i = rows.findIndex((r) => r.slug === slug);
+    if (i === -1) {
       throw new NotFoundException(`No work with slug "${slug}"`);
     }
-    return localizeWork(work, lang);
+    return this.build(rows, rows[i], i, lang);
+  }
+
+  /** Build + localize a single row within the ordered set (for the "next" link). */
+  private build(rows: WorkRow[], row: WorkRow, i: number, lang: Lang): Work {
+    const authored = rowToAuthored(row);
+    const nextRow = rows[(i + 1) % rows.length];
+    const work = toWork(authored, i, {
+      slug: nextRow.slug,
+      title: nextRow.title,
+    });
+    return localizeWork(work, authored.ru as WorkTranslation | null, lang);
   }
 }

@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>6baqa — Admin</title>
+<style>
+  :root {
+    --bg: #0e0f0d; --card: #16181a; --border: #2a2e2b;
+    --ink: #e8eae7; --muted: #9aa39b; --accent: #7dd88f;
+    --danger: #e08a8a; --field: #101210;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  a { color: var(--accent); }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg); z-index: 5;
+  }
+  header .brand { font-weight: 700; letter-spacing: .02em; }
+  header .brand small { color: var(--muted); font-weight: 400; margin-left: 8px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 20px; }
+  button {
+    font: inherit; cursor: pointer; border: 1px solid var(--border);
+    background: #1c1f1c; color: var(--ink); padding: 8px 14px; border-radius: 8px;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #0c130d; border-color: var(--accent); font-weight: 700; }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--danger); border-color: #3a2a2a; }
+  button.danger:hover { border-color: var(--danger); }
+  input, textarea, select {
+    width: 100%; font: inherit; color: var(--ink); background: var(--field);
+    border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 70px; }
+  label { display: block; margin: 0 0 6px; color: var(--muted); font-size: 12px; letter-spacing: .04em; }
+  .field { margin-bottom: 16px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  fieldset { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 0 0 20px; }
+  legend { color: var(--accent); padding: 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+  .list-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: var(--card);
+  }
+  .list-item .idx { color: var(--muted); width: 28px; }
+  .list-item .grow { flex: 1; }
+  .list-item .title { font-weight: 700; }
+  .list-item .sub { color: var(--muted); font-size: 12px; }
+  .imgrow { display: flex; gap: 8px; align-items: center; }
+  .imgrow input { flex: 1; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #1c1f1c; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 18px; z-index: 20; max-width: 90%;
+  }
+  .toast.err { border-color: var(--danger); color: var(--danger); }
+  .toast.ok { border-color: var(--accent); }
+  .center { min-height: 70vh; display: grid; place-items: center; }
+  .login { width: min(360px, 92vw); }
+  .bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .spacer { flex: 1; }
+  .muted { color: var(--muted); }
+  .mono-small { font-size: 12px; }
+  code { background: #1c1f1c; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">6baqa <small>admin</small></div>
+  <div class="bar">
+    <span id="whoami" class="muted mono-small"></span>
+    <button id="logout" class="ghost" style="display:none">Log out</button>
+  </div>
+</header>
+
+<!-- Login -->
+<section id="loginView" class="center" style="display:none">
+  <form class="login" id="loginForm">
+    <div class="field">
+      <label>Admin password</label>
+      <input type="password" id="password" autocomplete="current-password" autofocus />
+    </div>
+    <button class="primary" type="submit" style="width:100%">Sign in</button>
+    <p class="hint">Set <code>ADMIN_PASSWORD_HASH</code> (or <code>ADMIN_PASSWORD</code>) on the API service.</p>
+  </form>
+</section>
+
+<!-- List -->
+<section id="listView" class="wrap" style="display:none">
+  <div class="bar" style="margin-bottom:18px">
+    <h2 style="margin:0">Works</h2>
+    <div class="spacer"></div>
+    <button class="ghost" id="reorderSave" style="display:none">Save order</button>
+    <button class="primary" id="newWork">+ New work</button>
+  </div>
+  <div id="list"></div>
+</section>
+
+<!-- Editor -->
+<section id="editView" class="wrap" style="display:none">
+  <div class="bar" style="margin-bottom:18px">
+    <button class="ghost" id="backToList">← Works</button>
+    <div class="spacer"></div>
+    <button class="danger" id="deleteWork" style="display:none">Delete</button>
+    <button class="primary" id="saveWork">Save</button>
+  </div>
+  <h2 id="editTitle" style="margin:0 0 18px">New work</h2>
+
+  <form id="editForm" onsubmit="return false">
+    <fieldset>
+      <legend>Basics</legend>
+      <div class="row">
+        <div class="field"><label>Slug (a-z 0-9 -)</label><input id="f_slug" /></div>
+        <div class="field"><label>Order</label><input id="f_order" type="number" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Title</label><input id="f_title" /></div>
+        <div class="field"><label>Year</label><input id="f_year" /></div>
+      </div>
+      <div class="field"><label>Category</label><input id="f_category" /></div>
+      <div class="field"><label>Description (card + intro)</label><textarea id="f_description"></textarea></div>
+      <div class="field"><label>Tagline</label><textarea id="f_tagline"></textarea></div>
+      <div class="field"><label>Tags (comma-separated)</label><input id="f_tags" /></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Images</legend>
+      <p class="hint">Leave blank to fall back to <code>/assets/&lt;slug&gt;*.png</code>. Use Upload to store a file and fill the field.</p>
+      <div class="field"><label>Poster</label><div class="imgrow"><input id="f_poster" /><button data-upload="f_poster">Upload</button></div></div>
+      <div class="field"><label>Preview (hover)</label><div class="imgrow"><input id="f_preview" /><button data-upload="f_preview">Upload</button></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Reel (detail page)</legend>
+      <div class="field"><label>Idea</label><textarea id="f_reel_idea"></textarea></div>
+      <div class="field"><label>Process</label><textarea id="f_reel_process"></textarea></div>
+      <div class="field"><label>Quote</label><textarea id="f_reel_quote"></textarea></div>
+      <div class="row3">
+        <div class="field"><label>Hero label</label><input id="f_reel_heroLabel" /></div>
+        <div class="field"><label>Video caption</label><input id="f_reel_videoCaption" /></div>
+        <div class="field"><label>Wide label</label><input id="f_reel_wideLabel" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Proc 1 label</label><input id="f_reel_proc1Label" /></div>
+        <div class="field"><label>Proc 2 label</label><input id="f_reel_proc2Label" /></div>
+      </div>
+      <div class="field"><label>Hero image</label><div class="imgrow"><input id="f_reel_hero" /><button data-upload="f_reel_hero">Upload</button></div></div>
+      <div class="field"><label>Video image</label><div class="imgrow"><input id="f_reel_video" /><button data-upload="f_reel_video">Upload</button></div></div>
+      <div class="row">
+        <div class="field"><label>Proc 1 image</label><div class="imgrow"><input id="f_reel_proc1" /><button data-upload="f_reel_proc1">Upload</button></div></div>
+        <div class="field"><label>Proc 2 image</label><div class="imgrow"><input id="f_reel_proc2" /><button data-upload="f_reel_proc2">Upload</button></div></div>
+      </div>
+      <div class="field"><label>Wide image</label><div class="imgrow"><input id="f_reel_wide" /><button data-upload="f_reel_wide">Upload</button></div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Structured JSON</legend>
+      <p class="hint">Advanced fields edited as JSON. Must be valid JSON or blank.</p>
+      <div class="field"><label>Website — {"label","url"} or blank</label><textarea id="f_website"></textarea></div>
+      <div class="field"><label>Facts — [{"label","value"}]</label><textarea id="f_facts"></textarea></div>
+      <div class="field"><label>Socials — [{"label","url"}]</label><textarea id="f_socials"></textarea></div>
+      <div class="field"><label>Modules — [{"name","tagline","features?"}]</label><textarea id="f_modules" style="min-height:120px"></textarea></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Russian override (ru) — blank = English everywhere</legend>
+      <p class="hint">Whole RU translation object as JSON: category, description, tagline, facts, socials, reel, modules.</p>
+      <div class="field"><label>ru</label><textarea id="f_ru" style="min-height:160px"></textarea></div>
+    </fieldset>
+  </form>
+  <input type="file" id="filePicker" accept="image/*" style="display:none" />
+</section>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let TOKEN = localStorage.getItem('6baqa.admin.token') || '';
+let EDITING_ID = null;      // null = creating
+let UPLOAD_TARGET = null;   // input id awaiting an uploaded URL
+let ORDER_DIRTY = false;
+
+function toast(msg, kind) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + (kind || 'ok');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+async function api(path, opts = {}) {
+  const headers = Object.assign({}, opts.headers);
+  if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+  if (opts.body && !(opts.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(opts.body);
+  }
+  const res = await fetch('/api' + path, Object.assign({}, opts, { headers }));
+  if (res.status === 401) { logout(); throw new Error('Not authorized'); }
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!res.ok) throw new Error((data && (data.message || data.error)) || ('HTTP ' + res.status));
+  return data;
+}
+
+function show(view) {
+  for (const v of ['loginView', 'listView', 'editView']) $(v).style.display = 'none';
+  $(view).style.display = view === 'loginView' ? 'grid' : (view === 'editView' || view === 'listView' ? 'block' : 'grid');
+  if (view === 'listView') $(view).style.display = 'block';
+  const authed = view !== 'loginView';
+  $('logout').style.display = authed ? '' : 'none';
+  $('whoami').textContent = authed ? 'signed in' : '';
+}
+
+function logout() {
+  TOKEN = '';
+  localStorage.removeItem('6baqa.admin.token');
+  show('loginView');
+}
+
+// ---- Login ----
+$('loginForm').addEventListener('submit', async () => {
+  try {
+    const { token } = await api('/auth/login', { method: 'POST', body: { password: $('password').value } });
+    TOKEN = token; localStorage.setItem('6baqa.admin.token', token);
+    $('password').value = '';
+    await loadList();
+  } catch (e) { toast(e.message, 'err'); }
+});
+$('logout').addEventListener('click', logout);
+
+// ---- List ----
+async function loadList() {
+  const works = await api('/admin/works');
+  const list = $('list');
+  list.innerHTML = '';
+  ORDER_DIRTY = false; $('reorderSave').style.display = 'none';
+  works.forEach((w, i) => {
+    const item = document.createElement('div');
+    item.className = 'list-item';
+    item.dataset.id = w.id;
+    item.innerHTML =
+      '<span class="idx">' + String(i + 1).padStart(2, '0') + '</span>' +
+      '<div class="grow"><div class="title"></div><div class="sub"></div></div>' +
+      '<button class="ghost up">↑</button><button class="ghost down">↓</button>' +
+      '<button class="edit">Edit</button>';
+    item.querySelector('.title').textContent = w.title + '  (' + w.slug + ')';
+    item.querySelector('.sub').textContent = (w.category || '') + ' · ' + (w.year || '');
+    item.querySelector('.edit').addEventListener('click', () => openEditor(w.id));
+    item.querySelector('.up').addEventListener('click', () => move(item, -1));
+    item.querySelector('.down').addEventListener('click', () => move(item, 1));
+    list.appendChild(item);
+  });
+  show('listView');
+}
+
+function move(item, dir) {
+  const list = $('list');
+  const items = [...list.children];
+  const i = items.indexOf(item);
+  const j = i + dir;
+  if (j < 0 || j >= items.length) return;
+  if (dir < 0) list.insertBefore(item, items[j]);
+  else list.insertBefore(items[j], item);
+  [...list.children].forEach((el, k) => el.querySelector('.idx').textContent = String(k + 1).padStart(2, '0'));
+  ORDER_DIRTY = true; $('reorderSave').style.display = '';
+}
+
+$('reorderSave').addEventListener('click', async () => {
+  const ids = [...$('list').children].map((el) => el.dataset.id);
+  try { await api('/admin/works/reorder', { method: 'PUT', body: { ids } }); toast('Order saved'); ORDER_DIRTY = false; $('reorderSave').style.display = 'none'; }
+  catch (e) { toast(e.message, 'err'); }
+});
+
+$('newWork').addEventListener('click', () => openEditor(null));
+$('backToList').addEventListener('click', loadList);
+
+// ---- Editor ----
+function jsonToField(id, value) {
+  $(id).value = value == null ? '' : JSON.stringify(value, null, 2);
+}
+function fieldToJson(id) {
+  const raw = $(id).value.trim();
+  if (!raw) return null;
+  try { return JSON.parse(raw); }
+  catch (e) { throw new Error('Invalid JSON in "' + id.replace('f_', '') + '"'); }
+}
+
+async function openEditor(id) {
+  EDITING_ID = id;
+  $('deleteWork').style.display = id ? '' : 'none';
+  $('editTitle').textContent = id ? 'Edit work' : 'New work';
+  const w = id ? await api('/admin/works/' + id) : blankWork();
+  const r = w.reel || {};
+  $('f_slug').value = w.slug || '';
+  $('f_order').value = w.order ?? 0;
+  $('f_title').value = w.title || '';
+  $('f_year').value = w.year || '';
+  $('f_category').value = w.category || '';
+  $('f_description').value = w.description || '';
+  $('f_tagline').value = w.tagline || '';
+  $('f_tags').value = (w.tags || []).join(', ');
+  $('f_poster').value = w.poster || '';
+  $('f_preview').value = w.preview || '';
+  ['idea','process','quote','heroLabel','videoCaption','wideLabel','proc1Label','proc2Label','hero','video','proc1','proc2','wide']
+    .forEach((k) => { $('f_reel_' + k).value = r[k] || ''; });
+  jsonToField('f_website', w.website ?? null);
+  jsonToField('f_facts', w.facts || []);
+  jsonToField('f_socials', w.socials || []);
+  jsonToField('f_modules', w.modules ?? null);
+  jsonToField('f_ru', w.ru ?? null);
+  show('editView');
+  window.scrollTo(0, 0);
+}
+
+function blankWork() {
+  return { slug: '', order: 0, title: '', category: '', year: '', description: '', tagline: '',
+    tags: [], facts: [], socials: [], website: null, modules: null, ru: null, poster: '', preview: '',
+    reel: { heroLabel: '', idea: '', videoCaption: '', process: '', proc1Label: '', proc2Label: '', quote: '', wideLabel: '' } };
+}
+
+function collect() {
+  const reel = {};
+  ['idea','process','quote','heroLabel','videoCaption','wideLabel','proc1Label','proc2Label','hero','video','proc1','proc2','wide']
+    .forEach((k) => { reel[k] = $('f_reel_' + k).value; });
+  return {
+    slug: $('f_slug').value.trim(),
+    order: Number($('f_order').value) || 0,
+    title: $('f_title').value,
+    category: $('f_category').value,
+    year: $('f_year').value,
+    description: $('f_description').value,
+    tagline: $('f_tagline').value,
+    tags: $('f_tags').value.split(',').map((s) => s.trim()).filter(Boolean),
+    poster: $('f_poster').value.trim(),
+    preview: $('f_preview').value.trim(),
+    reel,
+    website: fieldToJson('f_website'),
+    facts: fieldToJson('f_facts') || [],
+    socials: fieldToJson('f_socials') || [],
+    modules: fieldToJson('f_modules'),
+    ru: fieldToJson('f_ru'),
+  };
+}
+
+$('saveWork').addEventListener('click', async () => {
+  let body;
+  try { body = collect(); } catch (e) { toast(e.message, 'err'); return; }
+  if (!body.slug) { toast('Slug is required', 'err'); return; }
+  if (!body.title) { toast('Title is required', 'err'); return; }
+  try {
+    if (EDITING_ID) await api('/admin/works/' + EDITING_ID, { method: 'PUT', body });
+    else await api('/admin/works', { method: 'POST', body });
+    toast('Saved');
+    await loadList();
+  } catch (e) { toast(e.message, 'err'); }
+});
+
+$('deleteWork').addEventListener('click', async () => {
+  if (!EDITING_ID) return;
+  if (!confirm('Delete this work permanently?')) return;
+  try { await api('/admin/works/' + EDITING_ID, { method: 'DELETE' }); toast('Deleted'); await loadList(); }
+  catch (e) { toast(e.message, 'err'); }
+});
+
+// ---- Uploads ----
+document.querySelectorAll('[data-upload]').forEach((btn) => {
+  btn.addEventListener('click', () => { UPLOAD_TARGET = btn.dataset.upload; $('filePicker').click(); });
+});
+$('filePicker').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file || !UPLOAD_TARGET) return;
+  const fd = new FormData(); fd.append('file', file);
+  try {
+    const { url } = await api('/admin/upload', { method: 'POST', body: fd });
+    $(UPLOAD_TARGET).value = url;
+    toast('Uploaded');
+  } catch (err) { toast(err.message, 'err'); }
+});
+
+// ---- Boot ----
+(async function () {
+  if (TOKEN) { try { await loadList(); return; } catch (e) { /* fall through */ } }
+  show('loginView');
+})();
+</script>
+</body>
+</html>
