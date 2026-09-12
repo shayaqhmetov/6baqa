@@ -56,6 +56,24 @@
   .imgrow { display: flex; gap: 8px; align-items: center; }
   .imgrow input { flex: 1; }
   .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .tag-chips {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--field); border: 1px solid var(--border); border-radius: 8px; padding: 8px;
+  }
+  .tag-chips:focus-within { border-color: var(--accent); }
+  .tag-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #1c1f1c; border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 8px; font-size: 13px;
+  }
+  .tag-chip button {
+    all: unset; cursor: pointer; color: var(--muted); font-size: 14px; line-height: 1; padding: 0 2px;
+  }
+  .tag-chip button:hover { color: var(--danger); }
+  .tag-input {
+    flex: 1; min-width: 140px; border: none; background: transparent; padding: 4px 2px;
+  }
+  .tag-input:focus { outline: none; }
   .toast {
     position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
     background: #1c1f1c; border: 1px solid var(--border); border-radius: 10px;
@@ -125,10 +143,24 @@
         <div class="field"><label>Title</label><input id="f_title" /></div>
         <div class="field"><label>Year</label><input id="f_year" /></div>
       </div>
-      <div class="field"><label>Category</label><input id="f_category" /></div>
+      <div class="field">
+        <label>Category</label>
+        <input id="f_category" list="categoryList" placeholder="Pick an existing one or type a new category" />
+        <datalist id="categoryList"></datalist>
+        <p class="hint">Existing categories autocomplete as you type — reuse one to avoid duplicates.</p>
+      </div>
       <div class="field"><label>Description (card + intro)</label><textarea id="f_description"></textarea></div>
-      <div class="field"><label>Tagline</label><textarea id="f_tagline"></textarea></div>
-      <div class="field"><label>Tags (comma-separated)</label><input id="f_tags" /></div>
+      <div class="field">
+        <label>Tagline — one-line positioning shown under the title on the project page</label>
+        <textarea id="f_tagline"></textarea>
+      </div>
+      <div class="field">
+        <label>Tags</label>
+        <div id="tagChips" class="tag-chips">
+          <input id="f_tags" class="tag-input" placeholder="Type a tag, press comma or Enter" />
+        </div>
+        <p class="hint">Press comma or Enter to add a tag · Backspace on an empty field removes the last.</p>
+      </div>
     </fieldset>
 
     <fieldset>
@@ -185,6 +217,8 @@ let TOKEN = localStorage.getItem('6baqa.admin.token') || '';
 let EDITING_ID = null;      // null = creating
 let UPLOAD_TARGET = null;   // input id awaiting an uploaded URL
 let ORDER_DIRTY = false;
+let TAGS = [];              // current work's tags (chip state)
+let CATEGORIES = [];        // distinct categories across works (for the datalist)
 
 function toast(msg, kind) {
   const el = document.createElement('div');
@@ -228,6 +262,45 @@ function logout() {
   show('loginView');
 }
 
+// ---- Tag chips ----
+function renderTags() {
+  const box = $('tagChips');
+  const input = $('f_tags');
+  box.querySelectorAll('.tag-chip').forEach((c) => c.remove());
+  TAGS.forEach((tag, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    const label = document.createElement('span');
+    label.textContent = tag;
+    const x = document.createElement('button');
+    x.type = 'button'; x.textContent = '×'; x.title = 'Remove';
+    x.addEventListener('click', () => { TAGS.splice(i, 1); renderTags(); input.focus(); });
+    chip.appendChild(label); chip.appendChild(x);
+    box.insertBefore(chip, input);
+  });
+}
+function addTagFromInput() {
+  const input = $('f_tags');
+  const val = input.value.trim().replace(/,+$/, '').trim();
+  if (val && !TAGS.includes(val)) TAGS.push(val);
+  input.value = '';
+  renderTags();
+}
+$('f_tags').addEventListener('keydown', (e) => {
+  if (e.key === ',' || e.key === 'Enter') { e.preventDefault(); addTagFromInput(); }
+  else if (e.key === 'Backspace' && !e.target.value && TAGS.length) { TAGS.pop(); renderTags(); }
+});
+$('f_tags').addEventListener('blur', addTagFromInput);
+$('f_tags').addEventListener('input', (e) => {
+  // Support pasting/typing "a, b, c" — split on commas as they appear.
+  if (e.target.value.includes(',')) {
+    const parts = e.target.value.split(',');
+    e.target.value = parts.pop();
+    parts.map((p) => p.trim()).filter(Boolean).forEach((p) => { if (!TAGS.includes(p)) TAGS.push(p); });
+    renderTags();
+  }
+});
+
 // ---- Login ----
 $('loginForm').addEventListener('submit', async () => {
   try {
@@ -242,6 +315,7 @@ $('logout').addEventListener('click', logout);
 // ---- List ----
 async function loadList() {
   const works = await api('/admin/works');
+  CATEGORIES = [...new Set(works.map((w) => w.category).filter(Boolean))].sort();
   const list = $('list');
   list.innerHTML = '';
   ORDER_DIRTY = false; $('reorderSave').style.display = 'none';
@@ -307,9 +381,13 @@ async function openEditor(id) {
   $('f_title').value = w.title || '';
   $('f_year').value = w.year || '';
   $('f_category').value = w.category || '';
+  $('categoryList').innerHTML = CATEGORIES.map((c) => '<option></option>').join('');
+  $('categoryList').querySelectorAll('option').forEach((o, i) => { o.value = CATEGORIES[i]; });
   $('f_description').value = w.description || '';
   $('f_tagline').value = w.tagline || '';
-  $('f_tags').value = (w.tags || []).join(', ');
+  TAGS = [...(w.tags || [])];
+  $('f_tags').value = '';
+  renderTags();
   $('f_poster').value = w.poster || '';
   $('f_preview').value = w.preview || '';
   ['idea','process','quote','heroLabel','videoCaption','wideLabel','proc1Label','proc2Label','hero','video','proc1','proc2','wide']
@@ -330,6 +408,7 @@ function blankWork() {
 }
 
 function collect() {
+  addTagFromInput(); // flush any half-typed tag
   const reel = {};
   ['idea','process','quote','heroLabel','videoCaption','wideLabel','proc1Label','proc2Label','hero','video','proc1','proc2','wide']
     .forEach((k) => { reel[k] = $('f_reel_' + k).value; });
@@ -337,11 +416,11 @@ function collect() {
     slug: $('f_slug').value.trim(),
     order: Number($('f_order').value) || 0,
     title: $('f_title').value,
-    category: $('f_category').value,
+    category: $('f_category').value.trim(),
     year: $('f_year').value,
     description: $('f_description').value,
     tagline: $('f_tagline').value,
-    tags: $('f_tags').value.split(',').map((s) => s.trim()).filter(Boolean),
+    tags: [...TAGS],
     poster: $('f_poster').value.trim(),
     preview: $('f_preview').value.trim(),
     reel,
