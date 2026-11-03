@@ -1,5 +1,5 @@
 # Build context = repo root (needed for the npm workspace + lockfile).
-# On Railway: Root Directory = repo root, Dockerfile Path = apps/web/Dockerfile
+# On Coolify: Base Directory = /6baqa, Dockerfile Location = /apps/web/Dockerfile
 FROM node:22-alpine AS build
 WORKDIR /app
 
@@ -19,7 +19,7 @@ FROM nginx:alpine AS runtime
 COPY apps/web/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html
 
-# Defaults for local `docker run`; Railway overrides PORT and API_URL.
+# Defaults for local `docker run`; Coolify sets PORT and API_URL.
 ENV PORT=8080
 ENV API_URL=http://localhost:3000
 

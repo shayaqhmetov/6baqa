@@ -3,7 +3,7 @@ import { join } from 'node:path';
 const env = process.env;
 
 /** Directory where uploads are written in local/disk mode (the fallback when
- *  no S3 bucket is configured). On Railway, prefer a bucket (see S3 below). */
+ *  no S3 bucket is configured). In production this is a persistent volume. */
 export const UPLOADS_DIR = env.UPLOADS_DIR ?? join(process.cwd(), 'uploads');
 
 /** Public route prefix under which uploads are served (proxied from the bucket
@@ -23,7 +23,7 @@ const pick = (...names: string[]): string | undefined => {
   return undefined;
 };
 
-/** S3-compatible object storage (Railway Bucket, MinIO, R2, AWS, …). Reads the
+/** S3-compatible object storage (MinIO, R2, AWS, …). Reads the
  *  AWS_* names first (what the bucket provides), then generic S3_* overrides,
  *  then the bare names — so it works whatever the bucket happens to inject. */
 export const S3 = {
@@ -56,15 +56,14 @@ export const S3 = {
     'S3_BUCKET',
     'BUCKET',
   ),
-  /** Railway Buckets use virtual-hosted addressing by default. Force path-style
+  /** Virtual-hosted addressing by default. Force path-style
    *  (bucket in the path — e.g. MinIO, older buckets) with *_URL_STYLE=path. */
   forcePathStyle:
     (
       pick('AWS_S3_URL_STYLE', 'S3_URL_STYLE', 'URL_STYLE') ?? 'virtual'
     ).toLowerCase() === 'path',
   /** Optional public base URL. Set only if the bucket serves objects publicly;
-   *  otherwise downloads are proxied through the API (Railway buckets are
-   *  private, so proxying is the default). */
+   *  otherwise downloads are proxied through the API. */
   publicUrl: pick('AWS_S3_URL', 'S3_PUBLIC_URL'),
 } as const;
 

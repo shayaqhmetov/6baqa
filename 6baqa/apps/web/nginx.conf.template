@@ -6,7 +6,7 @@ server {
     index index.html;
 
     # Forward API calls to the NestJS service. API_URL must be the API origin
-    # WITHOUT a path (e.g. https://6baqa-api.up.railway.app) — the /api prefix
+    # WITHOUT a path (e.g. http://6baqa-api:3000) — the /api prefix
     # is already part of the request and is preserved by proxy_pass.
     location /api/ {
         proxy_pass ${API_URL};

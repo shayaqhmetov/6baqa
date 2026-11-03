@@ -16,8 +16,8 @@ export interface StoredObject {
   contentLength?: number;
 }
 
-/** Stores uploaded images in an S3-compatible bucket (Railway Bucket, MinIO,
- *  R2, AWS…) when configured, otherwise on local disk. Downloads are proxied
+/** Stores uploaded images in an S3-compatible bucket (MinIO, R2,
+ *  AWS…) when configured, otherwise on local disk. Downloads are proxied
  *  through the API unless a public bucket URL is set. */
 @Injectable()
 export class StorageService {

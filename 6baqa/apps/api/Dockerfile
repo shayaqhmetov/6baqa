@@ -1,5 +1,5 @@
 # Build context = repo root (needed for the npm workspace + lockfile).
-# On Railway: Root Directory = repo root, Dockerfile Path = apps/api/Dockerfile
+# On Coolify: Base Directory = /6baqa, Dockerfile Location = /apps/api/Dockerfile
 FROM node:22-alpine AS build
 WORKDIR /app
 
@@ -33,7 +33,7 @@ COPY --from=build /app/apps/api/dist apps/api/dist
 COPY apps/api/public apps/api/public
 
 WORKDIR /app/apps/api
-# Railway injects PORT; main.ts reads process.env.PORT (falls back to 3000).
-# start:prod runs `prisma db push` (creates/syncs tables) then boots the server.
+# main.ts reads process.env.PORT (falls back to 3000).
+# start:prod runs `prisma migrate deploy` then boots the server.
 EXPOSE 3000
 CMD ["npm", "run", "start:prod"]

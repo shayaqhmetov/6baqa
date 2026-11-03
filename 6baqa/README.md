@@ -112,47 +112,44 @@ Admin (require `Authorization: Bearer <token>` from `/api/auth/login`):
 | `JWT_SECRET`            | yes      | signs admin JWTs — long random string in prod  |
 | `ADMIN_PASSWORD_HASH`   | yes\*    | bcrypt hash of the admin password (preferred)  |
 | `ADMIN_PASSWORD`        | yes\*    | plaintext fallback if no hash is set           |
-| bucket vars             | prod     | S3-compatible bucket for uploads (see below)   |
-| `UPLOADS_DIR`           | no       | local-dev fallback when no bucket is set        |
-| `PORT`                  | no       | defaults to 3000 (Railway injects it)          |
+| `UPLOADS_DIR`           | prod     | upload directory (a persistent volume in prod) |
+| bucket vars             | no       | optional S3-compatible bucket (see below)      |
+| `PORT`                  | no       | defaults to 3000                               |
 
 \* set exactly one of `ADMIN_PASSWORD_HASH` / `ADMIN_PASSWORD`.
 
-### Uploads → Railway Bucket
+### Uploads
 
-Uploaded images go to an S3-compatible bucket. On **Railway**, add a **Bucket**
-service and reference its `AWS_*` credentials from the API service:
+In production (Coolify) uploads are written to disk under `UPLOADS_DIR`, which
+points at a persistent volume (`/data/uploads`), so they survive redeploys.
+Downloads are served by the API at `/api/uploads/<key>`.
 
-```
-AWS_ENDPOINT_URL=${{Bucket.AWS_ENDPOINT_URL}}
-AWS_ACCESS_KEY_ID=${{Bucket.AWS_ACCESS_KEY_ID}}
-AWS_SECRET_ACCESS_KEY=${{Bucket.AWS_SECRET_ACCESS_KEY}}
-AWS_S3_BUCKET_NAME=${{Bucket.AWS_S3_BUCKET_NAME}}
-AWS_REGION=${{Bucket.AWS_REGION}}
-```
+An S3-compatible bucket (MinIO, R2, AWS) can be used instead: set the
+`AWS_*` or generic `S3_*` variables (`S3_ENDPOINT`, `S3_ACCESS_KEY_ID`,
+`S3_SECRET_ACCESS_KEY`, `S3_BUCKET`, `S3_REGION`) and uploads go to the bucket.
+Addressing is virtual-hosted by default; set `AWS_S3_URL_STYLE=path` for MinIO.
+Private buckets are proxied through `/api/uploads/<key>`; for a public bucket
+set `AWS_S3_URL` to its base URL and image links point straight at it.
 
-The API reads these automatically (and also accepts several common aliases, so
-whatever the bucket injects is picked up). No volume needed. Any S3-compatible
-store works (MinIO, R2, AWS) via the generic `S3_*` variables, which take
-precedence.
+## Deploy (Coolify)
 
-Railway Buckets use virtual-hosted addressing (the default here); set
-`AWS_S3_URL_STYLE=path` for MinIO or older path-style buckets.
+The site runs in the Coolify project **6baqa** as three resources, all built
+from this repo (base directory `/6baqa`):
 
-Railway Buckets are private, so by default the API **proxies** downloads at
-`/api/uploads/<key>` — images load without any public-access config. If you make
-the bucket public, set `AWS_S3_URL` to its public base URL and image links point
-straight at the bucket.
+| Resource   | Build                                | Notes                                         |
+| ---------- | ------------------------------------ | --------------------------------------------- |
+| `web`      | Dockerfile `apps/web/Dockerfile`     | port 8080, `6baqa.com`; `API_URL=http://6baqa-api:3000` |
+| `api`      | Dockerfile `apps/api/Dockerfile`     | port 3000, `api.6baqa.com` (admin at `/admin`); network alias `6baqa-api`; volume at `/data/uploads` |
+| `postgres` | Coolify PostgreSQL                   | internal only; its URL is the API's `DATABASE_URL` |
 
-When no bucket is configured (e.g. local dev), uploads fall back to disk under
-`UPLOADS_DIR`.
+Pushing to `main` redeploys whichever app's files changed (watch paths).
 
-On **Railway**, the API container runs `prisma migrate deploy` on start, so
-pending migrations are applied automatically on every deploy (non-destructive —
-it only creates/updates what the migrations declare and never drops unrelated
-tables). After the first successful deploy, run the seed once
-(`npm run db:seed`) against the production `DATABASE_URL` to load the initial
-works.
+The API container runs `prisma migrate deploy` on start, so pending migrations
+are applied automatically on every deploy (non-destructive — it only
+creates/updates what the migrations declare and never drops unrelated tables).
+The runtime image has no `ts-node`, so run the seed from a dev machine against
+the production `DATABASE_URL` (e.g. over an SSH tunnel to the database
+container): `npm run db:seed --workspace @6baqa/api`. It is idempotent.
 
 Local dev can use `npm run db:push` (fast schema sync, no migration files) or
 `npm run prisma:migrate -- --name <change>` to create a new migration when the
